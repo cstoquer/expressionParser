@@ -6,57 +6,98 @@ function pad(str, len, car) {
 	return (str.toString() + p).substring(0, len);
 }
 
-function consoleDisplay(node) {
-	var stack = [];
-	stack.unshift(node);
-	var str = '';
-
-	while (node = stack.pop()) {
-		str += node._log;
-		// str += node._line;
-		if (node._end) str += '\n';
-		var args = node.args;
-		if (args) {
-			for (var i = 0; i < args.length; i++) {
-				var arg = args[i];
-				stack.unshift(arg);
-			}
-		}
-	}
-	console.log('%c' + str, 'background-color: #F99;')
-}
-
-
-function logNode(node) {
+function logNode(node, end) {
 	var str;
-	var len  = 0;
-	var line = '';
-	var args = node.args;
+	var len   = 0;
+	var line  = '';
+	var args  = node.args;
+	var depth = 0;
+
+	var log = {
+		end: end,
+		children: [],
+		depth: 0,
+		str: '',
+		line: '',
+		len: 0
+	};
+
 	if (args) {
 		line = '├';
+		var prev = null;
 		for (var i = 0; i < args.length; i++) {
 			var arg = args[i];
-			var res = logNode(arg);
-			len  += res.len;
-			if (i > 0) line += pad('', res.len - 1, '─') + (i === args.length - 1 ? '┐' : '┬');
+			var res = logNode(arg, end && i === args.length - 1);
+			len += res.len;
+			depth = Math.max(depth, res.depth + 1);
+			if (prev) line += pad('', prev.len - 1, '─') + (i === args.length - 1 ? '┐' : '┬');
+			prev = res;
+			log.children.push(res);
 		}
-		if (node._end) arg._end = true;
-		line += ' '
 	}
 	if (node.id) {
-		str = node.id.toString();
+		str = node.id.toString() + ' ';
 	} else if (node.value) {
-		str = node.value.toString();
+		str = node.value.toString() + ' ';
 	} else {
-		str = '░';
+		str = '░ ';
 	}
-	len = Math.max(str.length + 1, len);
+	len = Math.max(str.length, len);
 	str = pad(str, len);
-	node._log  = str;
-	node._line = line;
+	line = pad(line, len);
 
-	return { len: len };
+	log.str   = str;
+	log.line  = line;
+	log.len   = len;
+	log.depth = depth;
+
+	return log;
 }
+
+function logExpression(str) {
+	console.log('%c' + str, 'background-color: #FCC');
+
+	var node  = logNode(parseExpression(str), true);
+	var depth = node.depth;
+	var stack = [];
+	var str   = '';
+	var line  = '';
+
+	node.depth = 0;
+	stack.unshift(node);
+
+	while (node = stack.pop()) {
+		
+		var children = node.children;
+		if (children.length === 0 && node.depth < depth) {
+			// pad leaf to tree max depth
+			var padding = pad('', node.len, ' ');
+			node.line = padding;
+			children.push({
+				str: padding,
+				line: '',
+				end: node.end,
+				children: [],
+				len: node.len
+			});
+		}
+
+		str  += node.str;
+		line += node.line;
+		if (node.end) {
+			str += '\n' + line + '\n';
+			line = '';
+		}
+
+		for (var i = 0; i < children.length; i++) {
+			var child = children[i];
+			child.depth = node.depth + 1;
+			stack.unshift(child);
+		}
+	}
+	console.log(str);
+}
+
 
 //▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 var DOCUMENT_BODY = document.getElementsByTagName('body')[0];
@@ -68,10 +109,9 @@ var ctx = canvas.getContext('2d');
 ctx.strokeStyle = '#FCC';
 ctx.lineWidth = 2;
 
-function div(text, x, y, xp, yp, parent) {
-	parent = parent || DOCUMENT_BODY;
+function div(text, x, y, xp, yp) {
 	var dom = document.createElement('div');
-	parent.appendChild(dom);
+	DOCUMENT_BODY.appendChild(dom);
 	dom.innerText = text;
 	dom.style.left = ~~x - 5 + 'px';
 	dom.style.top  = ~~y - 5 + 'px';
@@ -83,13 +123,12 @@ function div(text, x, y, xp, yp, parent) {
 }
 
 function htmlDisplay(node, w, x, y, xp, yp) {
-	str = ' ';
-	if (node.id) {
-		str = node.id.toString();
-	} else if (node.value) {
-		str = node.value.toString();
-	}
-	var xx = x + w / 2
+	var str = ' ';
+	var xx  = x + w / 2
+
+	if      (node.id)    str = node.id.toString();
+	else if (node.value) str = node.value.toString();
+
 	div(str, xx, y, xp, yp);
 
 	var args = node.args;
@@ -101,27 +140,18 @@ function htmlDisplay(node, w, x, y, xp, yp) {
 	}
 }
 
-//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-
-function logExpression(str) {
-	var expr = parseExpression(str);
-	// TODO
-	console.log(expr);
-	// expr._end = true;
-	// logNode(expr);
-	// consoleDisplay(expr);
-	htmlDisplay(expr, 800, 0, 10, 400, 10);
+function displayExpression(str) {
+	div(str, 0, 0, 0, 0, 0);
+	htmlDisplay(parseExpression(str), 800, 0, 10, 400, 10);
 }
 
 //▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 // TEST
 
+displayExpression('(add5 + b) * 2 - MAX(x, y, 4 * rot)');
 
-// var p = new Parser().fromString('bla00');
-// console.log(p.isNextString('bla000'))
-
-
-// logExpression('(add5 + b) * 2 - MAX(x, y, 4 * rot)');
+logExpression('(add5 + b) * 2 - MAX(x, y, 4 * rot)');
 logExpression('add5 * (b + 2) - MAX(x, y, (4 + g) * rot)');
-// logExpression('MAX(x, y, 4, rot)');
-// logExpression('a * 3 + b * 2');
+logExpression('MAX(x, rot, 4, y)');
+logExpression('3 + b * 2');
+logExpression('a * 3 + b * 2');
