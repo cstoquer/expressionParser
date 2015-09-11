@@ -1,0 +1,24 @@
+body {
+	font-family: "Arial", "Verdana";
+	font-weight: bold;
+	font-size: 11px;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+}
+
+canvas {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 800px;
+	height: 800px;
+}
+
+.node {
+	position: absolute;
+	background-color: #FCC;
+	padding: 5px;
+	border-radius: 5px;
+}

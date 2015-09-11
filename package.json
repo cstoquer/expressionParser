@@ -1,0 +1,23 @@
+{
+  "name": "expression-parser",
+  "version": "0.1.0",
+  "description": "Simple expression parser",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cstoquer/expressionParser.git"
+  },
+  "keywords": [
+    "expression",
+    "parser"
+  ],
+  "author": "Cedric Stoquer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cstoquer/expressionParser/issues"
+  },
+  "homepage": "https://github.com/cstoquer/expressionParser"
+}
