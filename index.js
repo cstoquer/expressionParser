@@ -1,4 +1,3 @@
-
 //▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 /**
  * @class  Expression Parser
@@ -14,16 +13,26 @@
  *
  * Originaly designed to parse BASIC programs
  */
-function Parser(str) {
+
+function StringBuffer(str) {
 	this.str = str;
+}
+
+//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+
+function Parser() {
+	this.buffer = null;
+	this.start  = 0;
+	this.end    = 0;
 }
 
 
 function parseExpression(str) {
-	return new Parser(str).parseExpression();
+	return new Parser().fromString(str).parseExpression();
 };
 
 module.exports = parseExpression;
+
 
 //▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 
@@ -69,12 +78,85 @@ var functions = [
 	{ id: 'TAN',      parameters: 1 }
 ];
 
-//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+//█████████████████████████████████████████████████████████████████████████████████████
+//████████▀███████████▄███████████████████████▄░████████████████▀▀▀███▀▀▀██████████████
+//█▀▄▄▄░█▄░▄▄██▄░▀▄▄█▄░███▄░▀▄▄▀██▀▄▄▄▀░▄██████░▀▄▄▄▀█▄░██▄░██▀░▀▀▀█▀░▀▀▀█▀▄▄▄▀█▄░▀▄▄▄█
+//██▄▄▄▀██░█████░█████░████░███░██░████░███████░████░██░███░███░█████░████░▄▄▄▄██░█████
+//█░▀▀▀▄██▄▀▀▄█▀░▀▀██▀░▀▀█▀░▀█▀░▀█▄▀▀▀▄░██████▀░▄▀▀▀▄██▄▀▀▄░▀█▀░▀▀▀█▀░▀▀▀█▄▀▀▀▀█▀░▀▀▀██
+//█████████████████████████████████▀▀▀▀▄███████████████████████████████████████████████
 
+Parser.prototype.fromString = function (str) {
+	this.buffer = new StringBuffer(str);
+	this.start  = 0;
+	this.end    = str.length;
+	return this;
+};
+
+//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+Parser.prototype.copy = function (start, end) {
+	var stringBuffer    = new Parser();
+	stringBuffer.buffer = this.buffer;
+	stringBuffer.start  = start;
+	stringBuffer.end    = end;
+	return stringBuffer;
+};
+
+//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 Parser.prototype.removeWhiteSpace = function () {
 	var t = this;
-	while (t.str[0] === ' ' || t.str[0] === '\n') t.str = t.str.substring(1);
+	while (t.buffer.str[t.start] === ' ' || t.buffer.str[t.start] === '\n') {
+		t.start += 1;
+	}
+	return t;
 };
+
+//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+Parser.prototype.isEmpty = function () {
+	return this.start >= this.end;
+};
+
+
+//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+Parser.prototype.isNextChar = function (c) {
+	return this.buffer.str[this.start] === c;
+};
+
+//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+/** Test if next character in string buffer is a number
+ * this is equivalent of doing regex test /^[0-9]/ but faster
+ */
+Parser.prototype.isNextNumber = function (offset) {
+	var charCode = this.buffer.str.charCodeAt(this.start + offset);
+	return charCode >= 48 && charCode <= 57;
+};
+
+//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+/** Test if next character in string buffer is an letter
+ * this is equivalent of doing regex test /^[A-Za-z]/ but faster
+ */
+Parser.prototype.isNextLetter = function () {
+	var charCode = this.buffer.str.charCodeAt(this.start);
+	return (charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122);
+};
+
+//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+Parser.prototype.isNextAlphaNum = function () {
+	var charCode = this.buffer.str.charCodeAt(this.start);
+	return (charCode >= 48 && charCode <= 57) || (charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122);
+};
+
+//▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+/** String comparison */
+Parser.prototype.isNextString = function (str) {
+	var t = this;
+	var len = str.length;
+	for (var i = 0; i < len; i++) {
+		if (t.buffer.str[t.start + i] !== str[i]) return false;
+	}
+	return true;
+};
+
+
 
 //███████████████████████████████████████████████████████████████████████████████
 //██▄░▄▄▄▀███████████████████████████████▀████▄░██████████████████████▄██████████
@@ -87,29 +169,30 @@ Parser.prototype.removeWhiteSpace = function () {
  */
 Parser.prototype.parseParenthesis = function () {
 	var t = this;
-	if (t.str[0] !== '(') throw new Error('An opening parenthesis is missing.');
+	if (!t.isNextChar('(')) throw new Error('An opening parenthesis is missing.');
 	//consume first parenthesis
-	t.str = t.str.substring(1);
-	var res = '';
+	t.start += 1;
+
+	var resStart = t.start;
+	var resEnd   = t.start;
+
 	var stackParenthesis = 0;
-	while (!(t.str[0] === ')' && stackParenthesis === 0)) {
-		if (t.str[0] === '(') stackParenthesis++;
-		if (t.str[0] === ')') stackParenthesis--;
+	while (!(t.isNextChar(')') && stackParenthesis === 0)) {
+		if (t.isNextChar('(')) stackParenthesis++;
+		if (t.isNextChar(')')) stackParenthesis--;
 		if (stackParenthesis < 0) throw new Error('Too much closing parenthesis.');
-		res += t.str[0];
-		t.str = t.str.substring(1);
-		if (t.str === '') throw new Error('Parenthesis expression doesn\'t resolve');
+		t.start += 1;
+		resEnd  += 1;
+		if (t.isEmpty()) throw new Error('Parenthesis expression doesn\'t resolve');
 	}
 	// consume last parenthesis
-	t.str = t.str.substring(1);
+	t.start += 1;
 
-	// parse expression inside parenthesis
-	res = parseExpression(res);
-	res = {
+	/*return {
 		type: 'parenthesis',
-		arg: res
-	};
-	return res;
+		arg: t.copy(resStart, resEnd).parseExpression()
+	};*/
+	return t.copy(resStart, resEnd).parseExpression();
 };
 
 //█████████████████████████████████████████
@@ -125,31 +208,39 @@ Parser.prototype.parseParenthesis = function () {
 Parser.prototype.getParenthesisList = function () {
 	var t = this;
 	// parse parenthesis content: (expr, expr, ...)
-	if (t.str[0] !== '(') throw new Error('An opening parenthesis is missing.');
+	if (!t.isNextChar('(')) throw new Error('An opening parenthesis is missing.');
 	// consume first "("
-	t.str = t.str.substring(1);
+	t.start += 1;
+
 	var args = [];
-	var arg = '';
+	// var arg = '';
+	var argStart = t.start;
+	var argEnd   = t.start;
 	var stackParenthesis = 0;
-	while (!(t.str[0] === ')' && stackParenthesis === 0)) {
-		if (t.str[0] === '(') stackParenthesis++;
-		if (t.str[0] === ')') stackParenthesis--;
+	while (!(t.isNextChar(')') && stackParenthesis === 0)) {
+		if (t.isNextChar('(')) stackParenthesis++;
+		if (t.isNextChar(')')) stackParenthesis--;
 		if (stackParenthesis < 0) throw new Error('Too much closing parenthesis.');
-		if (t.str[0] === ',' && stackParenthesis === 0) {
-			arg = parseExpression(arg);
-			args.push(arg);
-			arg = '';
-		} else {
-			arg += t.str[0];
+		if (t.isNextChar(',') && stackParenthesis === 0) {
+			// arg = parseExpression(arg);
+			// arg = '';
+			args.push(t.copy(argStart, argEnd).parseExpression());
+			// consume comma
+			t.start += 1;
+			t.removeWhiteSpace();
+			// reset arg boundaries
+			argStart = t.start;
+			argEnd   = t.start;
+			continue;
 		}
-		t.str = t.str.substring(1);
-		if (t.str === '') throw new Error('Parenthesis expression doesn\'t resolve');
+		argEnd  += 1;
+		t.start += 1;
+		if (t.isEmpty()) throw new Error('Parenthesis expression doesn\'t resolve');
 	}
 	// push last parameter
-	arg = parseExpression(arg);
-	args.push(arg);
+	args.push(t.copy(argStart, argEnd).parseExpression());
 	// consume last ")"
-	t.str = t.str.substring(1);
+	t.start += 1;
 	return args;
 };
 
@@ -165,16 +256,16 @@ Parser.prototype.getParenthesisList = function () {
 Parser.prototype.parseString = function () {
 	var t = this;
 	var res = '';
-	if (t.str[0] !== '"') throw new Error('An opening quote is missing.');
+	if (!t.isNextChar('"')) throw new Error('An opening quote is missing.');
 	// consume first double quote
-	t.str = t.str.substring(1);
-	while (t.str[0] !== '"') {
-		res += t.str[0];
-		t.str = t.str.substring(1);
-		if (t.str === '') throw new Error('Closing quote not found.');
+	t.start += 1;
+	while (!t.isNextChar('"')) {
+		res += t.buffer.str[t.start];
+		t.start += 1;
+		if (t.isEmpty()) throw new Error('Closing quote not found.');
 	}
 	// consume last double quote
-	t.str = t.str.substring(1);
+	t.start += 1;
 	return { type: 'string', value: res };
 };
 
@@ -193,31 +284,30 @@ Parser.prototype.parseNumber = function () {
 	var res  = '';
 
 	// check for a negative number
-	if (t.str[0] === '-') {
+	if (t.isNextChar('-')) {
 		res   = '-';
-		t.str = t.str.substring(1);
+		t.start += 1;
 		t.removeWhiteSpace();
 	}
 
-	if (t.str === '') throw new Error('End of line before number.');
+	if (t.isEmpty()) throw new Error('End of line before number.');
 
-	if (t.str[0].search(/[0-9]/) === -1) throw new Error('Not a digit character');
-	while (t.str[0].search(/[0-9]/) === 0) {
-		res += t.str[0];
-		t.str = t.str.substring(1);
-		if (t.str === '') break;
+	if (!t.isNextNumber(0)) throw new Error('Not a digit character');
+	while (t.isNextNumber(0) && !t.isEmpty()) {
+		res += t.buffer.str[t.start];
+		t.start += 1;
+		// if (t.isEmpty()) break;
 	}
 
 	// check for a decimal point
-	if (t.str[0] === '.') {
+	if (t.isNextChar('.')) {
 		type = 'float';
 		res += '.';
 		t.str = t.str.substring(1);
 		// continue to consume decimal digits
-		while (t.str[0].search(/[0-9]/) === 0) {
-			res += t.str[0];
-			t.str = t.str.substring(1);
-			if (t.str === '') break;
+		while (t.isNextNumber(0) && !t.isEmpty()) {
+			res += t.buffer.str[t.start];
+			t.start += 1;
 		}
 	}
 
@@ -258,7 +348,7 @@ Parser.prototype.parseFunction = function (func) {
 	// then if we have 0 parameters, there are no parenthesis
 	if (Array.isArray(parameters) 
 		&& parameters.indexOf(0) !== -1
-		&& t.str[0] !== '(') return res;
+		&& t.isNextChar('(')) return res;
 
 	var args = t.getParenthesisList();
 
@@ -294,50 +384,50 @@ Parser.prototype.parseFunction = function (func) {
 //█████████████████████████████████████████████████████████████████
 
 /** @method parseVariable
+ * PRE: first character must be a letter
  */
 Parser.prototype.parseVariable = function () {
 	var t = this;
-	var res = '';
-	// default type for locomotive basic are float
-	var varType = 'float';
 
-	// first character must be a letter
-	if (t.str[0].search(/[A-Za-z]/) === -1) throw new Error('Invalid variable name');
-	res += t.str[0];
-	t.str = t.str.substring(1);
+	// default type for locomotive basic are float
+	var varType = 'default';
+
+	// consume first character (it must be a letter)
+	var variableName = t.buffer.str[t.start];
+	t.start += 1;
 
 	// following character could be letters or numbers
-	while (t.str !== '' && t.str[0].search(/[A-Za-z0-9]/) !== -1) {
-		res += t.str[0];
-		t.str = t.str.substring(1);
+	while (!t.isEmpty() && t.isNextAlphaNum()) {
+		variableName += t.buffer.str[t.start];
+		t.start += 1;
 	}
 
 	// variable name can ends with one of these special characters : $ % !
-	if (t.str[0] === '$' || t.str[0] === '%' || t.str[0] === '!') {
-		res += t.str[0];
-		switch (t.str[0]) {
-		case '$': varType = 'string'; break;
-		case '%': varType = 'int'; break;
-		case '!': varType = 'float'; break;
+	if (t.isNextChar('$') || t.isNextChar('%') || t.isNextChar('!')) {
+		variableName += t.buffer.str[t.start];
+		switch (t.buffer.str[t.start]) {
+			case '$': varType = 'string'; break;
+			case '%': varType = 'int';    break;
+			case '!': varType = 'float';  break;
 		}
 		t.str = t.str.substring(1);
 	}
 
-	res = {
+	variableName = {
 		type: 'variable',
 		varType: varType,
-		id: res,
+		id: variableName,
 	};
 
 	// if variable is an array, following character is a opening bracket
-	if (t.str[0] === '(') {
+	if (t.isNextChar('(')) {
 		// extract parenthesis content
-		res.indexes = t.getParenthesisList();
+		variableName.indexes = t.getParenthesisList();
 		// set variable as an array
-		res.isArray = true;
+		variableName.isArray = true;
 	}
 
-	return res;
+	return variableName;
 };
 
 //██████████████████████████████████████████████████████████████████████████
@@ -361,56 +451,57 @@ Parser.prototype.getNextObject = function () {
 	var t = this;
 	t.removeWhiteSpace();
 
-	if (t.str === '') return null;
+	if (t.isEmpty()) return null;
 
 	// check if next object is an expression in parenthesis
-	if (t.str[0] === '(') return t.parseParenthesis();
+	if (t.isNextChar('(')) return t.parseParenthesis();
 
 	// check if next object is a string
-	if (t.str[0] === '"') return t.parseString();
+	if (t.isNextChar('"')) return t.parseString();
 
 	// TODO: hexadecimal number
 
+	var isNextMinus = t.isNextChar('-');
 
 	// check for unary '-' operator (not with number)
-	if (t.str[0] === '-' && t.str[1].search(/[0-9]/) === -1) {
+	// if (isNextMinus && t.buffer.str[t.start + 1].search(/[0-9]/) === -1) { // TODO
+	if (isNextMinus && !t.isNextNumber(1)) {
 		// consume '-'
-		t.str = t.str.substring(1);
+		t.start += 1;
+
 		// get argument
 		var arg = t.getNextObject();
-		return { type: 'unaryOp', id: '-', arg: arg };
+		return { type: 'unaryOp', id: '-', args: [arg] };
 	}
 
 	// check for unary operators
 	var i;
 	for (i = 0; i < unaryOperators.length; i++) {
 		var operatorId = unaryOperators[i].id;
-		var strLen = operatorId.length;
-		if (t.str.substring(0, strLen) === operatorId) {
+		if (t.isNextString(operatorId)) {
 			// consume operator
-			t.str = t.str.substring(strLen);
+			t.start += operatorId.length;
 			// get argument
 			var arg = t.getNextObject();
-			return { type: 'unaryOp', id: operatorId, arg: arg };
+			return { type: 'unaryOp', id: operatorId, args: [arg] };
 		}
 	}
 
 	// check if next object is a number
-	if (t.str[0].search(/[\-0-9]/) !== -1) return t.parseNumber();
+	if (t.isNextNumber(0) || isNextMinus) return t.parseNumber();
 
 	// check if next object is a function
 	for (i = 0; i < functions.length; i++) {
-		var fLen = functions[i].id.length;
-		if (t.str.substring(0, fLen) === functions[i].id) {
+		if (t.isNextString(functions[i].id)) {
 			// consume funtion name
-			t.str = t.str.substring(fLen);
+			t.start += functions[i].id.length;
 			// get parameters and return function object
 			return t.parseFunction(functions[i]);
 		}
 	}
 
 	// check if next object is a variable name
-	if (t.str[0].search(/[A-Za-z]/) !== -1) return t.parseVariable();
+	if (t.isNextLetter()) return t.parseVariable();
 
 	// not recognized object
 	return null;
@@ -432,14 +523,13 @@ Parser.prototype.getNextOperator = function () {
 	t.removeWhiteSpace();
 
 	// check end of stream
-	if (t.str === '') return null;
+	if (t.isEmpty()) return null;
 
 	// check each of operators
 	for (var i = 0; i < operators.length; i++) {
-		var oLen = operators[i].id.length;
-		if (t.str.substring(0, oLen) === operators[i].id) {
+		if (t.isNextString(operators[i].id)) {
 			// consume token
-			t.str = t.str.substring(oLen);
+			t.start += operators[i].id.length;
 			// return operator
 			return operators[i];
 		}
@@ -466,7 +556,7 @@ Parser.prototype.parseExpression = function () {
 	var operators = [];
 	while (true) {
 		objects.push(this.getNextObject());
-		var operator = this.getNextOperator()
+		var operator = this.getNextOperator();
 		if (operator === null) break;
 		operators.push(operator);
 	}
@@ -481,8 +571,7 @@ Parser.prototype.parseExpression = function () {
 			var object = {
 				type: 'operator',
 				id:   operator.id,
-				arg1: objects[i],
-				arg2: objects[i+1]
+				args: [objects[i], objects[i+1]]
 			};
 			objects.splice(i, 2, object);
 			operators.splice(i, 1);
