@@ -6,7 +6,7 @@ function pad(str, len, car) {
 	return (str.toString() + p).substring(0, len);
 }
 
-function logNode(node, end) {
+function logNode(node, end, maxlen) {
 	var str;
 	var len   = 0;
 	var line  = '';
@@ -22,19 +22,6 @@ function logNode(node, end) {
 		len: 0
 	};
 
-	if (args) {
-		line = '├';
-		var prev = null;
-		for (var i = 0; i < args.length; i++) {
-			var arg = args[i];
-			var res = logNode(arg, end && i === args.length - 1);
-			len += res.len;
-			depth = Math.max(depth, res.depth + 1);
-			if (prev) line += pad('', prev.len - 1, '─') + (i === args.length - 1 ? '┐' : '┬');
-			prev = res;
-			log.children.push(res);
-		}
-	}
 	if (node.id) {
 		str = node.id.toString() + ' ';
 	} else if (node.value) {
@@ -42,7 +29,26 @@ function logNode(node, end) {
 	} else {
 		str = '░ ';
 	}
-	len = Math.max(str.length, len);
+
+	maxlen = Math.max(str.length, maxlen);
+
+	if (args) {
+		line = '├';
+		var prev = null;
+		var last = args.length - 1;
+		for (var i = 0; i < args.length; i++) {
+			var isLast = i === last;
+			var arg = args[i];
+			var res = logNode(arg, end && isLast, isLast ? maxlen - len : 0);
+			len += res.len;
+			depth = Math.max(depth, res.depth + 1);
+			if (prev) line += pad('', prev.len - 1, '─') + (isLast ? '┐' : '┬');
+			prev = res;
+			log.children.push(res);
+		}
+	}
+	
+	len = Math.max(str.length, len, maxlen);
 	str = pad(str, len);
 	line = pad(line, len);
 
@@ -57,7 +63,7 @@ function logNode(node, end) {
 function logExpression(str) {
 	console.log('%c' + str, 'background-color: #FCC');
 
-	var node  = logNode(parseExpression(str), true);
+	var node  = logNode(parseExpression(str), true, 0);
 	var depth = node.depth;
 	var stack = [];
 	var str   = '';
@@ -150,7 +156,7 @@ function displayExpression(str) {
 
 displayExpression('(add5 + b) * 2 - MAX(x, y, 4 * rot)');
 
-logExpression('(add5 + b) * 2 - MAX(x, y, 4 * rot)');
+logExpression('(add5 + b) * 2 - ROUND(x, y) + (2 * u + 7)');
 logExpression('add5 * (b + 2) - MAX(x, y, (4 + g) * rot)');
 logExpression('MAX(x, rot, 4, y)');
 logExpression('3 + b * 2');
