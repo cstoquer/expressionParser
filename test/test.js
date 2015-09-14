@@ -33,9 +33,9 @@ function logNode(node, end, maxlen) {
 	maxlen = Math.max(str.length, maxlen);
 
 	if (args) {
-		line = '├';
-		var prev = null;
 		var last = args.length - 1;
+		var prev = null;
+		line = last ? '├' : '│';
 		for (var i = 0; i < args.length; i++) {
 			var isLast = i === last;
 			var arg = args[i];
@@ -156,7 +156,7 @@ function displayExpression(str) {
 
 displayExpression('(add5 + b) * 2 - MAX(x, y, 4 * rot)');
 
-logExpression('(add5 + b) * 2 - ROUND(x, y) + (2 * u + 7)');
+logExpression('(add5 + b) * 2 - ROUND(x, y) + (2 * 7 <> -x)');
 logExpression('add5 * (b + 2) - MAX(x, y, (4 + g) * rot)');
 logExpression('MAX(x, rot, 4, y)');
 logExpression('3 + b * 2');
