@@ -1,3 +1,4 @@
+var parseExpression = require('parseExpression');
 
 //▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 function pad(str, len, car) {
@@ -60,10 +61,13 @@ function logNode(node, end, maxlen) {
 	return log;
 }
 
-function logExpression(str) {
-	console.log('%c' + str, 'background-color: #FCC');
+function logExpression(exprString) {
+	var expr = parseExpression(exprString);
 
-	var node  = logNode(parseExpression(str), true, 0);
+	console.log('%c' + exprString, 'background-color: #FCC');
+	console.log(expr);
+
+	var node  = logNode(expr, true, 0);
 	var depth = node.depth;
 	var stack = [];
 	var str   = '';
@@ -101,6 +105,7 @@ function logExpression(str) {
 			stack.unshift(child);
 		}
 	}
+
 	console.log(str);
 }
 
@@ -130,7 +135,7 @@ function div(text, x, y, xp, yp) {
 
 function htmlDisplay(node, w, x, y, xp, yp) {
 	var str = ' ';
-	var xx  = x + w / 2
+	var xx  = x + w / 2;
 
 	if      (node.id)    str = node.id.toString();
 	else if (node.value) str = node.value.toString();
@@ -156,7 +161,7 @@ function displayExpression(str) {
 
 displayExpression('(add5 + b) * 2 - MAX(x, y, 4 * rot)');
 
-logExpression('(add5 + b) * 2 - ROUND(x, y) + (2 * 7 <> -x)');
+logExpression('(add5 + b) * 2 - ROUND(x, y) + (2 * time <> -((x + 1) / 2.5))');
 logExpression('add5 * (b + 2) - MAX(x, y, (4 + g) * rot)');
 logExpression('MAX(x, rot, 4, y)');
 logExpression('3 + b * 2');
@@ -166,3 +171,5 @@ logExpression('b * (2 + 3)');
 logExpression('3 + (b * 2)');
 logExpression('(b * 2) + 3');
 logExpression('a * 3 + b * 2');
+logExpression('"HELLO" ; "WORLD"');
+logExpression('a(4, u + i) * -PI');

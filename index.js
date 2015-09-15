@@ -29,7 +29,7 @@ function Parser() {
 
 function parseExpression(str) {
 	return new Parser().fromString(str).parseExpression();
-};
+}
 
 module.exports = parseExpression;
 
@@ -188,10 +188,6 @@ Parser.prototype.parseParenthesis = function () {
 	// consume last parenthesis
 	t.start += 1;
 
-	/*return {
-		type: 'parenthesis',
-		arg: t.copy(resStart, resEnd).parseExpression()
-	};*/
 	return t.copy(resStart, resEnd).parseExpression();
 };
 
@@ -296,14 +292,14 @@ Parser.prototype.parseNumber = function () {
 	while (t.isNextNumber(0) && !t.isEmpty()) {
 		res += t.buffer.str[t.start];
 		t.start += 1;
-		// if (t.isEmpty()) break;
 	}
 
 	// check for a decimal point
 	if (t.isNextChar('.')) {
 		type = 'float';
 		res += '.';
-		t.str = t.str.substring(1);
+		// consume dot
+		t.start += 1;
 		// continue to consume decimal digits
 		while (t.isNextNumber(0) && !t.isEmpty()) {
 			res += t.buffer.str[t.start];
@@ -346,9 +342,9 @@ Parser.prototype.parseFunction = function (func) {
 
 	// special case: if function can have 0 or more parameters,
 	// then if we have 0 parameters, there are no parenthesis
-	if (Array.isArray(parameters) 
-		&& parameters.indexOf(0) !== -1
-		&& t.isNextChar('(')) return res;
+	if (Array.isArray(parameters)    &&
+		parameters.indexOf(0) !== -1 &&
+		t.isNextChar('(')) return res;
 
 	var args = t.getParenthesisList();
 
@@ -413,7 +409,7 @@ Parser.prototype.parseVariable = function () {
 		t.str = t.str.substring(1);
 	}
 
-	variableName = {
+	var variable = {
 		type: 'variable',
 		varType: varType,
 		id: variableName,
@@ -422,12 +418,12 @@ Parser.prototype.parseVariable = function () {
 	// if variable is an array, following character is a opening bracket
 	if (t.isNextChar('(')) {
 		// extract parenthesis content
-		variableName.indexes = t.getParenthesisList();
+		variable.args = t.getParenthesisList();
 		// set variable as an array
-		variableName.isArray = true;
+		variable.isArray = true;
 	}
 
-	return variableName;
+	return variable;
 };
 
 //██████████████████████████████████████████████████████████████████████████
@@ -462,6 +458,7 @@ Parser.prototype.getNextObject = function () {
 	// TODO: hexadecimal number
 
 	var isNextMinus = t.isNextChar('-');
+	var i, arg;
 
 	// check for unary '-' operator (not with number)
 	// if (isNextMinus && t.buffer.str[t.start + 1].search(/[0-9]/) === -1) { // TODO
@@ -470,19 +467,18 @@ Parser.prototype.getNextObject = function () {
 		t.start += 1;
 
 		// get argument
-		var arg = t.getNextObject();
+		arg = t.getNextObject();
 		return { type: 'unaryOp', id: '-', args: [arg] };
 	}
 
 	// check for unary operators
-	var i;
 	for (i = 0; i < unaryOperators.length; i++) {
 		var operatorId = unaryOperators[i].id;
 		if (t.isNextString(operatorId)) {
 			// consume operator
 			t.start += operatorId.length;
 			// get argument
-			var arg = t.getNextObject();
+			arg = t.getNextObject();
 			return { type: 'unaryOp', id: operatorId, args: [arg] };
 		}
 	}
@@ -554,9 +550,10 @@ Parser.prototype.parseExpression = function () {
 	// get all tokens
 	var objects   = [];
 	var operators = [];
+	var operator;
 	while (true) {
 		objects.push(this.getNextObject());
-		var operator = this.getNextOperator();
+		operator = this.getNextOperator();
 		if (operator === null) break;
 		operators.push(operator);
 	}
@@ -564,7 +561,7 @@ Parser.prototype.parseExpression = function () {
 	// parse expression
 	var i = 0;
 	while (operators.length > 0) {
-		var operator  = operators[i]
+		operator = operators[i];
 		var lookahead = operators[i+1];
 		if (!lookahead || operator.precedence >= lookahead.precedence) {
 			// reducing object[i] operator[i] object[i+1]
